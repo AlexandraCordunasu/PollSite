@@ -1,7 +1,34 @@
 .home-page {
     background-image: url('../images/bg.png');
     background-size: cover;
-    background-position: center;
+    background-repeat: no-repeat;
     height: 100%;
-  }
+    }
+.container{
+  padding-top: 10rem;
+  overflow: hidden;
 
+}
+.container .text{
+  float: left;
+  width: 50%;
+  font-size: 2.35vw;
+  color: white;
+  align-items: center;
+  justify-content: center;
+}
+
+.container .logo_testoasa{
+  float: left;
+  width: 50%;
+}
+.logo_testoasa img{
+  width: 80%;
+  height: 80%;
+}
+
+.container-polls{
+  padding: 2rem;
+  padding-left: 4rem;
+  overflow: hidden;
+}

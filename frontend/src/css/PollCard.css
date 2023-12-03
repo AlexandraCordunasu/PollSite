@@ -1,0 +1,53 @@
+.poll-card {
+    background-color: white;
+    border-radius: 20px;
+    align-self: center;
+    float: left;
+    padding: 2rem;
+    margin: 3rem;
+    width: 40%;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .radio-option {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  input[type="radio"] {
+    margin-right: 10px;
+    margin-top: 1rem;
+    width: 16px;
+    height: 16px;
+    padding-top: 5rem;
+    border-color: rgba(4, 57, 94, 1);
+  }
+  
+  label {
+    font-size: 20px; 
+  }
+
+  button{
+    background-color: rgba(4, 57, 94, 1) ;
+    color: white;
+  }
+
+  .poll-card-footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .button-style {
+    background-color:rgba(4, 57, 94, 1);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0.5rem 2rem;
+  }
+  
+

@@ -1,11 +1,12 @@
 import "../css/Navbar.css"
-import logo from '../images/logo.png'
-import React, {useState}  from 'react'
+import React, { useState, useEffect }  from 'react'
 import Modal from 'react-bootstrap/Modal';
 import { Formik,Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import axios from 'axios'
-
+import { ReactComponent as Logo } from '../images/logonav.svg';
+import { ReactComponent as HamburgerLogo } from '../images/hambuger.svg';
+import CreatePoll from "./CreatePoll";
 
 const loginSchema = Yup.object().shape({
   email: Yup.string()
@@ -29,16 +30,33 @@ const registerSchema = Yup.object().shape({
     .min(8, "Password must be at least 8 characters"),
 });
 
+const Alert = ({ message,onClose }) => {
+
+  const [isVisible, setIsVisible] = useState(true);
+
+  const handleClose = () => {
+    setIsVisible(false);
+    onClose();
+  };
+
+  return (
+    <div className="alert">
+      <p>{message}</p>
+      <button className="close_button" onClick={handleClose}>
+        Close
+      </button>
+    </div>
+  );
+};
+
 function NavbarComponent() {
 
     const [showLoginModal, setShowLoginModal] = useState(false)
     const [showRegisterModal, setShowRegisterModal] = useState(false)
     const [showCreatePollModal, setShowCreatePollModal] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
-
-    const handleLoginStatus = (status) => {
-      setIsLoggedIn(status);
-    };
+    const [isOpen, setIsOpen] = useState(false)
+    const [alertMessage, setAlertMessage] = useState('');
 
     const handleLoginClick = () => {
         setShowLoginModal(true);
@@ -54,10 +72,12 @@ function NavbarComponent() {
     
     const handleCreatePollClick = () => {
       setShowCreatePollModal(true)
-    }
+    };
+
     const handleRegisterClick = () => {
       setShowRegisterModal(true);
     };
+
     const handleCloseRegisterModal = () => {
       setShowRegisterModal(false);
     };
@@ -67,12 +87,14 @@ function NavbarComponent() {
         const response = await axios.post('http://localhost:3001/user/register', {
           email,
           password,
-          
         });
         setShowLoginModal(true);
         setShowRegisterModal(false);
         console.log('Registration successful', response.data);
       }catch(error){
+        if (error.response && error.response.data && error.response.data.errorType === 'emailused') {
+          alert('Email already exists.');
+        }
         console.error("Error during registration:", error);
         
       }
@@ -82,52 +104,98 @@ function NavbarComponent() {
           const response = await axios.post('http://localhost:3001/user/login', {
             email,
             password,
-            
           });
+          const { token } = response.data;
+          setAuthToken(token);
           setShowLoginModal(false);
-          handleLoginStatus(true)
+          setIsLoggedIn(true)
           console.log('Login successful', response.data);
         }catch(error){
+          if (error.response && error.response.data && error.response.data.errorType === 'noUser') {
+            setAlertMessage('User not found');
+          }
+          if (error.response && error.response.data && error.response.data.errorType === 'wrongPass') {
+            setAlertMessage('Incorrect password');
+          }
           console.error("Error during login:", error);
-          
         }
     }
     const handleLogout = () => {
-      
+      setAuthToken();
+      localStorage.removeItem('jwtToken');
       setIsLoggedIn(false); 
+    };
+
+    useEffect(() => {
+      const storedToken = localStorage.getItem('jwtToken');
+      if (storedToken) {
+        setAuthToken(storedToken);
+        setIsLoggedIn(true);
+      }
+    }, []);
+
+    const setAuthToken = (token) => {
+      if (token) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        localStorage.setItem('jwtToken', token);
+      } else {
+        delete axios.defaults.headers.common['Authorization'];
+        localStorage.removeItem('jwtToken');
+      }
+    };
+
+    useEffect(() => {
+      function handleResize() {
+        if (window.innerWidth > 768) {
+          setIsOpen(false);
+        }
+      }
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const handleCloseAlert = () => {
+      setAlertMessage('');
     };
     
     return (
-        <nav className='nav'>
+        <nav className={`nav ${isOpen ? 'menu-open' : ''}`}>
             <a href='/' className='logo'>
-                <img src={logo} alt=''></img>
+                <Logo/>
             </a>
-            {isLoggedIn ? (
-             <ul>
-               <li>
-                   <a href = "#" onClick={handleCreatePollClick}>Create poll</a>
-               </li>
-               <li>
-                   <a href="#" onClick={handleLogout}>Log out</a>
-               </li>
-            </ul>):(
-              <ul>
-              <li>
-                  <a href = "#" onClick={handleLoginClick}>Login</a>
-              </li>
-              <li>
-                  <a href = "#" onClick={handleRegisterClick}>Register</a>
-              </li>
-          </ul>
+            <div className="menu-icon" onClick={() => setIsOpen(!isOpen)}>
+              <HamburgerLogo/>
+            </div>
+            {(isOpen || window.innerWidth > 768) && (
+              isLoggedIn ? (
+                <ul>
+                  <li>
+                      <a href = "#" onClick={handleCreatePollClick}>Create poll</a>
+                  </li>
+                  <li>
+                      <a href="#" onClick={handleLogout}>Log out</a>
+                  </li>
+                </ul>
+              ) : (
+                <ul>
+                    <li>
+                        <a href = "#" onClick={handleLoginClick}>Login</a>
+                    </li>
+                    <li>
+                        <a href = "#" onClick={handleRegisterClick}>Register</a>
+                    </li>
+                </ul>
+              )
             )}
-            <Modal show={showLoginModal} onHide={handleCloseLoginModal} size='small' centered  >
+            <Modal show={showLoginModal} onHide={handleCloseLoginModal} size='small' centered className={`blurred-background ${showLoginModal ? 'true' : ''}`} >
               <Modal.Header closeButton className="color_bg border-0">
               </Modal.Header>
+              {alertMessage && <Alert message={alertMessage} onClose={handleCloseAlert}/>}
                 <Formik
                   validationSchema={loginSchema}
                   initialValues={{ email: "", password: "" }}
                   onSubmit={(values) => {
-                      handleSubmitLogin(values.email,values.password)
+                      // handleSubmitLogin(values.email,values.password)
                   }}
                   >
                   {(formik) => (
@@ -136,28 +204,9 @@ function NavbarComponent() {
                           <div className="login_form mt-1 mb-5">
                             <label className='login_label'> Login</label>
                           </div>
-                          
-                          <Field placeholder = 'Email' name='email' type = 'mail'
-                           style={{
-                            background: 'transparent',
-                            border: '2px solid white',
-                            borderRadius: '8px', 
-                            color: 'white', 
-                            padding: '6px', 
-                            width: '80%'
-                          }}
-                         />
+                          <Field  className= "email_field" placeholder = 'Email' name='email' type = 'mail'/>
                           <ErrorMessage name = 'email'/>
-                          <Field className="mt-4" placeholder = 'Password' name='password' type = 'password'
-                          style={{
-                            background: 'transparent',
-                            border: '2px solid white',
-                            borderRadius: '8px', 
-                            color: 'white', 
-                            padding: '6px', 
-                            width: '80%',
-                            marginTop: '10px'
-                          }}/>
+                          <Field className="password_field mt-4" placeholder = 'Password' name='password' type = 'password'/>
                           <ErrorMessage name = 'password'/>
                           <Modal.Footer className="border-0">
                           <button className= "button_style mt-5 mb-4" type='submit' onClick={() => {
@@ -173,9 +222,10 @@ function NavbarComponent() {
                   )}
                 </Formik>
             </Modal>
-            <Modal show={showRegisterModal} onHide={handleCloseRegisterModal} centered   >
+            <Modal show={showRegisterModal} onHide={handleCloseRegisterModal} centered  className={`blurred-background ${showLoginModal ? 'true' : ''}`} >
                 <Modal.Header closeButton className="color_bg border-0">
                 </Modal.Header >
+                 {alertMessage && <Alert message={alertMessage} onClose={handleCloseAlert}/>}
                   <Formik
                     validationSchema={registerSchema}
                     initialValues={{ email: "", password: "", confirmPassword:"" }}
@@ -187,38 +237,11 @@ function NavbarComponent() {
                             <label className='login_label'> Register</label>
                           </div>   
                             
-                            <Field placeholder = 'Email' name='email' type = 'mail'
-                            style={{
-                              background: 'transparent',
-                              border: '2px solid white',
-                              borderRadius: '8px', 
-                              color: 'white', 
-                              padding: '6px', 
-                              width: '80%'
-                            }}
-                          />
+                            <Field className="email_field" placeholder = 'Email' name='email' type = 'mail'/>
                             <ErrorMessage name = 'email'/>
-                            <Field className="mt-4" placeholder = 'Password' name='password' type = 'password'
-                            style={{
-                              background: 'transparent',
-                              border: '2px solid white',
-                              borderRadius: '8px', 
-                              color: 'white', 
-                              padding: '6px', 
-                              width: '80%',
-                              marginTop: '10px'
-                            }}/>
+                            <Field className="password_field mt-4" placeholder = 'Password' name='password' type = 'password'/>
                             <ErrorMessage name = 'password'/>
-                            <Field className="mt-4" placeholder = 'Confirm password' name='confirmPassword' type = 'password'
-                            style={{
-                              background: 'transparent',
-                              border: '2px solid white',
-                              borderRadius: '8px', 
-                              color: 'white', 
-                              padding: '6px', 
-                              width: '80%',
-                              marginTop: '10px'
-                            }}/>
+                            <Field className="password_field mt-4" placeholder = 'Confirm password' name='confirmPassword' type = 'password'/>
                             <ErrorMessage name = 'confirmPassword'/>
                           <Modal.Footer className="border-0">
                             <button className= "button_style mt-4 mb-4" type='submit' onClick={() => {
@@ -234,8 +257,15 @@ function NavbarComponent() {
                     )}
                   </Formik>
             </Modal>
-            <Modal show={showCreatePollModal} onHide={handleCreatePollClick} size='small' centered  >
-
+            <Modal show={showCreatePollModal} size = 'lg'onHide={handleCloseCreatePollModal} centered className={`blurred-background ${showLoginModal ? 'true' : ''}`} >
+              <Modal.Header closeButton className="login_label color_bg border-0">
+                <Modal.Title>Create Poll</Modal.Title>
+              </Modal.Header>
+              <Modal.Body className="color_bg"> 
+                  <CreatePoll/>   
+              </Modal.Body>
+              <Modal.Footer style={{ backgroundColor: 'rgba(4, 57, 94, 1)', border: 'none' }}>
+              </Modal.Footer>
             </Modal>
          </nav>
     );
