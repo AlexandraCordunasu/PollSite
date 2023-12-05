@@ -28,7 +28,9 @@ const PollCard = ({ title, question, options, onDelete, onVote }) => {
       ))}
       <div className='poll-card-footer'>
         <button className='button-style' onClick={onDelete}>Delete</button>
+        {selectedOption !== null && (
         <button className='button-style' onClick={handleVote}>Vote</button>
+        )}
       </div>
     </div>
   );

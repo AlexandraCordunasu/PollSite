@@ -16,6 +16,7 @@
   color: white;
   align-items: center;
   justify-content: center;
+  padding-left: 2rem;
 }
 
 .container .logo_testoasa{
@@ -31,4 +32,17 @@
   padding: 2rem;
   padding-left: 4rem;
   overflow: hidden;
+}
+
+@media only screen and (max-width: 768px) {
+  .container .text {
+    font-size: 3vw;
+    padding-top: 5rem; 
+    padding-left: 3.5rem;
+    justify-content: center;
+  }
+  .container .logo_testoasa{
+    padding-top: 5rem; 
+  }
+
 }

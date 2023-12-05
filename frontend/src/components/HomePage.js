@@ -23,9 +23,16 @@ export default function HomePage(){
         console.log(`Voted for option ${optionIndex} in poll ${pollId}`);
       };
     
-      const handleDelete = (pollId) => {
-        console.log(`Deleted poll ${pollId}`);
+      const handleDelete = async (pollId) => {
+        try {
+          
+    
+          ;
+        } catch (error) {
+          console.error(error);
+        }
       };
+
     return (
         <div className="home-page">
             <div className="container">
