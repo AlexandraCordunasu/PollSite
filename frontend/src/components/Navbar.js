@@ -104,7 +104,7 @@ function NavbarComponent() {
           const response = await axios.post('http://localhost:3001/user/login', {
             email,
             password,
-          });
+          })
           const { token } = response.data;
           setAuthToken(token);
           setShowLoginModal(false);

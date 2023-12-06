@@ -20,6 +20,7 @@ function CreatePoll(){
             options,
           });
           console.log('Poll created successfully', response.data);
+          window.location.reload();
         } catch (error) {
           console.error('Error creating poll:', error);
         }

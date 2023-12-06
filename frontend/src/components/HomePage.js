@@ -25,9 +25,9 @@ export default function HomePage(){
     
       const handleDelete = async (pollId) => {
         try {
-          
-    
-          ;
+          const response = await axios.post(`http://localhost:3001/poll/deletePoll/${pollId}`);
+          console.log('Poll deleted successfully:', response.data);
+          window.location.reload();
         } catch (error) {
           console.error(error);
         }
@@ -48,10 +48,10 @@ export default function HomePage(){
             <div className="container-polls">
                 {pollObj.map((poll)=>(
                      <PollCard
-                     key={poll.id}
+                     key={poll._id}
                      {...poll}
-                     onVote={(optionIndex) => handleVote(poll.id, optionIndex)}
-                     onDelete={() => handleDelete(poll.id)}
+                     onVote={(optionIndex) => handleVote(poll._id, optionIndex)}
+                     onDelete={() => handleDelete(poll._id)}
                    />
                 ))}
             </div>
